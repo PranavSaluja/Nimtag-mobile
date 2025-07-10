@@ -1,12 +1,12 @@
+import { auth } from './firebase';
 import {
     GoogleAuthProvider,
-    signInWithPopup,
+    signInWithCredential,
+    signOut,
+    onAuthStateChanged,
     RecaptchaVerifier,
     signInWithPhoneNumber,
-    signOut,
-    onAuthStateChanged
 } from 'firebase/auth';
-import { auth } from './firebaseConfig';
 
 class AuthService {
     constructor() {
@@ -15,73 +15,92 @@ class AuthService {
         this.recaptchaVerifier = null;
     }
 
-    // Google Sign In
-    async signInWithGoogle() {
+    // Initialize reCAPTCHA for phone authentication
+    initializeRecaptcha() {
+        if (!this.recaptchaVerifier) {
+            this.recaptchaVerifier = new RecaptchaVerifier(
+                'recaptcha-container',
+                {
+                    size: 'invisible',
+                    callback: (response) => {
+                        // reCAPTCHA solved, allow signInWithPhoneNumber
+                        console.log('reCAPTCHA solved');
+                    },
+                    'expired-callback': () => {
+                        // Response expired, ask user to solve reCAPTCHA again
+                        console.log('reCAPTCHA expired');
+                    }
+                },
+                this.auth
+            );
+        }
+        return this.recaptchaVerifier;
+    }
+
+    // Google Sign-In with credential
+    async signInWithGoogleCredential(idToken) {
         try {
-            const provider = new GoogleAuthProvider();
-            const result = await signInWithPopup(this.auth, provider);
+            const credential = GoogleAuthProvider.credential(idToken);
+            const userCredential = await signInWithCredential(this.auth, credential);
+            
             return {
                 success: true,
-                user: result.user,
-                credential: GoogleAuthProvider.credentialFromResult(result)
+                user: userCredential.user,
             };
         } catch (error) {
-            return {
-                success: false,
-                error: error.message
-            };
+            console.error('Firebase Google sign-in error:', error);
+            return { success: false, error: error.message };
         }
     }
 
-    // Phone Sign In - Step 1: Send OTP
+    // Phone Sign In - Send OTP
     async sendOTP(phoneNumber) {
         try {
-            // Create RecaptchaVerifier if not exists
-            if (!this.recaptchaVerifier) {
-                this.recaptchaVerifier = new RecaptchaVerifier(
-                    'recaptcha-container',
-                    {
-                        size: 'invisible',
-                        callback: (response) => {
-                            console.log('reCAPTCHA verified');
-                        }
-                    },
-                    this.auth
-                );
-            }
-
+            // Initialize reCAPTCHA if not already done
+            const recaptchaVerifier = this.initializeRecaptcha();
+            
             const confirmationResult = await signInWithPhoneNumber(
-                this.auth,
-                phoneNumber,
-                this.recaptchaVerifier
+                this.auth, 
+                phoneNumber, 
+                recaptchaVerifier
             );
-
+            
             return {
                 success: true,
                 confirmationResult,
-                message: 'OTP sent successfully'
+                message: 'OTP sent successfully',
             };
         } catch (error) {
-            return {
-                success: false,
-                error: error.message
-            };
+            console.error('Send OTP error:', error);
+            
+            // Reset reCAPTCHA on error
+            if (this.recaptchaVerifier) {
+                this.recaptchaVerifier.clear();
+                this.recaptchaVerifier = null;
+            }
+            
+            return { success: false, error: error.message };
         }
     }
 
-    // Phone Sign In - Step 2: Verify OTP
+    // Phone Sign In - Verify OTP
     async verifyOTP(confirmationResult, otp) {
         try {
             const result = await confirmationResult.confirm(otp);
+            
+            // Clear reCAPTCHA after successful verification
+            if (this.recaptchaVerifier) {
+                this.recaptchaVerifier.clear();
+                this.recaptchaVerifier = null;
+            }
+            
             return {
                 success: true,
-                user: result.user
+                user: result.user,
             };
         } catch (error) {
-            return {
-                success: false,
-                error: error.message
-            };
+            console.error('Verify OTP error:', error);
+            return { success: false, error: error.message };
         }
     }
 
@@ -89,13 +108,21 @@ class AuthService {
     async signOut() {
         try {
             await signOut(this.auth);
+            
+            // Clear reCAPTCHA on sign out
+            if (this.recaptchaVerifier) {
+                this.recaptchaVerifier.clear();
+                this.recaptchaVerifier = null;
+            }
+            
             return { success: true };
         } catch (error) {
+            console.error('Sign out error:', error);
             return { success: false, error: error.message };
         }
     }
 
-    // Listen to auth state changes
+    // Auth state listener
     onAuthStateChanged(callback) {
         return onAuthStateChanged(this.auth, callback);
     }
@@ -103,6 +130,14 @@ class AuthService {
     // Get current user
     getCurrentUser() {
         return this.auth.currentUser;
+    }
+
+    // Clean up reCAPTCHA
+    cleanup() {
+        if (this.recaptchaVerifier) {
+            this.recaptchaVerifier.clear();
+            this.recaptchaVerifier = null;
+        }
     }
 }
 
