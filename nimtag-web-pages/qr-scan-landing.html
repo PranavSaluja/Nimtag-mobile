@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Vehicle Owner - NimTag</title>
+    <!-- Optional: Feather Icons for sleek icons -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    <style>
+        /* General Styles for the Dark Theme */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+            margin: 0;
+            background-color: #1E2C3A;
+            /* Dark blue background from NimTag Home Screen */
+            color: #E0E0E0;
+            /* Light text color */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+            line-height: 1.5;
+            overflow-x: hidden;
+            /* Prevent horizontal scroll */
+        }
+
+        .container {
+            background-color: #2E3D49;
+            /* Slightly lighter dark blue for cards */
+            padding: 30px;
+            border-radius: 20px;
+            /* More rounded corners */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            /* Deeper shadow */
+            max-width: 450px;
+            /* Adjusted max width */
+            width: 100%;
+            text-align: left;
+            /* Align text to left inside container */
+            box-sizing: border-box;
+            animation: fadeIn 0.8s ease-out;
+            color: #E0E0E0;
+            margin-bottom: 20px;
+            /* Space before buttons */
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Top Header */
+        .top-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .vehicle-id {
+            font-size: 2.2em;
+            /* Larger vehicle ID */
+            font-weight: bold;
+            color: #E0E0E0;
+            /* White text */
+        }
+
+        .live-support {
+            background-color: #FFD700;
+            /* Gold color */
+            color: #1E2C3A;
+            /* Dark text on gold */
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            text-decoration: none;
+        }
+
+        /* Vehicle Details Section */
+        .details-section {
+            margin-bottom: 30px;
+        }
+
+        .details-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #A0A0A0;
+            /* Light grey title */
+            margin-bottom: 10px;
+        }
+
+        .vehicle-description {
+            font-size: 1.1em;
+            color: #E0E0E0;
+            line-height: 1.4;
+        }
+
+        .vehicle-license {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #E0E0E0;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .masked-part {
+            background-color: #FFD700;
+            /* Gold background for masked part */
+            color: #1E2C3A;
+            /* Dark text on gold */
+            padding: 5px 10px;
+            border-radius: 8px;
+            margin-left: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        /* Reason Selection */
+        .reason-section {
+            margin-bottom: 30px;
+        }
+
+        .reason-prompt {
+            font-size: 1em;
+            color: #A0A0A0;
+            margin-bottom: 15px;
+        }
+
+        .reason-option {
+            display: flex;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            /* Subtle separator */
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .reason-option:last-child {
+            border-bottom: none;
+        }
+
+        .reason-option:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+            /* Light hover effect */
+        }
+
+        .reason-icon {
+            margin-right: 15px;
+            width: 24px;
+            /* Icon size */
+            height: 24px;
+            stroke: #E0E0E0;
+            /* Default icon color */
+            fill: none;
+            /* Make sure icons are outlined, not filled */
+            stroke-width: 2;
+            /* Adjust stroke thickness */
+        }
+
+        .reason-text {
+            flex-grow: 1;
+            font-size: 1.05em;
+            color: #E0E0E0;
+        }
+
+        .reason-radio {
+            position: relative;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #A0A0A0;
+            /* Grey border for unchecked */
+            margin-left: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .reason-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .reason-radio::after {
+            content: '';
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #FFD700;
+            /* Gold fill for checked */
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .reason-option input[type="radio"]:checked+.reason-radio::after {
+            opacity: 1;
+        }
+
+        .reason-option input[type="radio"]:checked+.reason-radio {
+            border-color: #FFD700;
+            /* Gold border when checked */
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            /* Space between buttons */
+            margin-top: 30px;
+            /* Space above buttons */
+        }
+
+        .btn {
+            flex: 1;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+            border: none;
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .btn-message {
+            background-color: #3A4B5C;
+            /* Darker grey */
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-message:hover {
+            background-color: #4C5E70;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-private-call {
+            background-color: #FFD700;
+            /* Gold */
+            color: #1E2C3A;
+            /* Dark text on gold */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-private-call:hover {
+            background-color: #E6C200;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Responsive Adjustments */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                border-radius: 15px;
+            }
+
+            .top-header {
+                flex-direction: column;
+                align-items: flex-start;
+                margin-bottom: 20px;
+            }
+
+            .live-support {
+                margin-top: 10px;
+                align-self: flex-end;
+            }
+
+            .vehicle-id {
+                font-size: 1.8em;
+            }
+
+            .reason-option {
+                padding: 10px 0;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .btn {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="top-header">
+            <span class="vehicle-id" id="topVehicleId">NGF132</span>
+            <a href="#" class="live-support">Live Support</a>
+        </div>
+
+        <div class="details-section">
+            <p class="details-title">Contact Vehicle Owner.</p>
+            <p class="vehicle-description" id="vehicleDescription">ARCTIC WHITE MARUTI IGNIS DELTA PETROL</p>
+            <p class="vehicle-license">
+                <span id="vehicleLicensePrefix">DL8CAQ</span>
+                <span class="masked-part">#####</span>
+            </p>
+        </div>
+
+        <div class="reason-section">
+            <p class="reason-prompt">Please select a reason why do you want to contact the owner</p>
+
+            <label class="reason-option">
+                <input type="radio" name="contactReason" value="lights-on">
+                <span class="reason-radio"></span>
+                <i data-feather="sun" class="reason-icon"></i>
+                <span class="reason-text">The lights of this car is on.</span>
+            </label>
+            <label class="reason-option">
+                <input type="radio" name="contactReason" value="no-parking">
+                <span class="reason-radio"></span>
+                <i data-feather="slash" class="reason-icon"></i>
+                <span class="reason-text">The car is in no parking.</span>
+            </label>
+            <label class="reason-option">
+                <input type="radio" name="contactReason" value="getting-towed">
+                <span class="reason-radio"></span>
+                <i data-feather="truck" class="reason-icon"></i>
+                <span class="reason-text">The car is getting towed.</span>
+            </label>
+            <label class="reason-option">
+                <input type="radio" name="contactReason" value="baby-pet-in-car">
+                <span class="reason-radio"></span>
+                <i data-feather="users" class="reason-icon"></i> <!-- Using users for baby/pet -->
+                <span class="reason-text">There is a baby or pet in car.</span>
+            </label>
+            <label class="reason-option">
+                <input type="radio" name="contactReason" value="window-open">
+                <span class="reason-radio"></span>
+                <i data-feather="square" class="reason-icon"></i> <!-- Using square for window -->
+                <span class="reason-text">The window or car is open.</span>
+            </label>
+            <label class="reason-option">
+                <input type="radio" name="contactReason" value="something-wrong">
+                <span class="reason-radio"></span>
+                <i data-feather="alert-triangle" class="reason-icon"></i>
+                <span class="reason-text">Something wrong with this car.</span>
+            </label>
+        </div>
+
+        <div class="action-buttons">
+            <button class="btn btn-message" id="messageButton">Message</button>
+            <button class="btn btn-private-call" id="privateCallButton">Private Call</button>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Feather Icons
+        feather.replace();
+
+        // Function to get URL parameters
+        function getQueryParams() {
+            const params = {};
+            const urlParams = new URLSearchParams(window.location.search);
+            for (const [key, value] of urlParams) {
+                params[key] = value;
+            }
+            return params;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = getQueryParams();
+
+            // Populate Vehicle Details
+            const fullVehicleNumber = decodeURIComponent(params.vNum || 'N/A');
+            const ownerName = decodeURIComponent(params.oName || 'N/A'); // Not directly used on this page for display, but could be for logic
+            const contactNumber = decodeURIComponent(params.contact || 'N/A');
+
+            // Split vehicle number for display
+            if (fullVehicleNumber !== 'N/A' && fullVehicleNumber.length > 5) { // Assuming format like DL8CAQ1234
+                const prefix = fullVehicleNumber.substring(0, fullVehicleNumber.length - 4);
+                const maskedSuffix = '####'; // Use a fixed mask as per image
+                document.getElementById('topVehicleId').textContent = prefix; // Display prefix on top
+                document.getElementById('vehicleLicensePrefix').textContent = prefix; // Display prefix near masked part
+            } else {
+                document.getElementById('topVehicleId').textContent = 'N/A';
+                document.getElementById('vehicleLicensePrefix').textContent = 'N/A';
+            }
+
+            // Example description (you might want to pass this from QR Generator or fetch from DB)
+            // For now, it's static as per your image.
+            // document.getElementById('vehicleDescription').textContent = "ARCTIC WHITE MARUTI IGNIS DELTA PETROL";
+
+
+            // Handle Button Clicks
+            document.getElementById('messageButton').addEventListener('click', () => {
+                const selectedReason = document.querySelector('input[name="contactReason"]:checked');
+                if (selectedReason) {
+                    const reasonValue = selectedReason.value;
+                    alert(`Message button clicked! Reason: ${reasonValue}. \n(This would trigger a message flow)`);
+                    // In a real app, this would trigger an API call to send a message
+                    // or navigate to a custom message input screen.
+                } else {
+                    alert('Please select a reason to contact the owner.');
+                }
+            });
+
+            document.getElementById('privateCallButton').addEventListener('click', () => {
+                const selectedReason = document.querySelector('input[name="contactReason"]:checked');
+                if (selectedReason) {
+                    const reasonValue = selectedReason.value;
+                    // Pass contactNumber and selectedReason to the next page
+                    window.location.href = `contact-options.html?contact=${encodeURIComponent(contactNumber)}&reason=${encodeURIComponent(reasonValue)}`;
+                } else {
+                    alert('Please select a reason to contact the owner.');
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>

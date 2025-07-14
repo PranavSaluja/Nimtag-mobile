@@ -6,36 +6,55 @@ export default {
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
+
+    extra: {
+      eas: {
+        projectId: "0d8ea0bc-8c2f-493c-bbc8-56efbc3b6ea2"
+      }
+    },
+
     splash: {
-      image: "./assets/splash.png",
+      image: "./assets/splash-icon.png",
       resizeMode: "contain",
       backgroundColor: "#ffffff"
     },
-    assetBundlePatterns: [
-      "**/*"
-    ],
+
+    assetBundlePatterns: ["**/*"],
+
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.pranav01.NimtagApp"
+      bundleIdentifier: "com.pranav01.NimtagApp",
+      infoPlist: {
+        ITSAppUsesNonExemptEncryption: false
+      }
     },
+
     android: {
+      package: "com.pranav01.NimtagApp",
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#FFFFFF"
       },
-      package: "com.pranav01.NimtagApp"
+      permissions: [
+        "INTERNET",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
     },
+
     web: {
       favicon: "./assets/favicon.png"
     },
-    // IMPORTANT: Add this scheme for linking
+
     scheme: "nimtagapp",
+
     plugins: [
       [
         "expo-build-properties",
         {
           android: {
-            enableProguardInReleaseBuilds: true,
+            enableProguardInReleaseBuilds: true
           }
         }
       ]
