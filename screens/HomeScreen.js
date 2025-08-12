@@ -62,7 +62,7 @@ const HomeScreen = () => {
         <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
             {/* Top Bar: Nimtag & Profile Icon */}
             <View style={styles.topBar}>
-                <Text style={styles.nimtagLogoText}>Nimtag</Text>
+                <Text style={styles.nimtagLogoText}>Scantocall</Text>
                 <TouchableOpacity onPress={handleProfilePress}>
                     <Image
                         source={require('../assets/images/profile-icon.png')} // Replace with actual profile icon

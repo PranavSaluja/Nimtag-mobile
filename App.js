@@ -1,56 +1,121 @@
+// App.js
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Image, StyleSheet, Text, View, Platform } from 'react-native'; // Import Image and other components for tab icons
+import { Image, StyleSheet, Text, View, Platform } from 'react-native';
 
 // Import screens
 import LoginScreen from './LoginScreen';
 import QrGeneratorScreen from './QrGeneratorScreen';
 import HomeScreen from './screens/HomeScreen';
 import TagsScreen from './screens/TagsScreen';
+import TagDetailsScreen from './screens/TagDetailsScreen'; // NEW IMPORT
 import RewardsScreen from './screens/RewardsScreen';
 import SettingsScreen from './screens/SettingsScreen';
-import ProfileScreen from './screens/ProfileScreen'; // For profile and logout
+import ProfileScreen from './screens/ProfileScreen';
 
-import AuthService from './authService'; // To listen for auth state changes
+// Import setting detail screens
+import AccountScreen from './screens/AccountScreen';
+import PrivacyScreen from './screens/PrivacyScreen';
+import NotificationsScreen from './screens/NotificationsScreen';
+import VaultScreen from './screens/VaultScreen';
+import LoyaltyScreen from './screens/LoyaltyScreen';
+import HelpScreen from './screens/HelpScreen';
+import EditProfileScreen from './screens/EditProfileScreen';
+
+import AuthService from './authService';
+import { UserProvider, useUser } from './context/UserContext';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
+
+// Updated Settings Tab Icon with Profile Image
+function SettingsTabIcon({ focused, size }) {
+    const { user } = useUser();
+
+    if (user?.profileImage) {
+        return (
+            <View style={{
+                width: size,
+                height: size,
+                borderRadius: size / 2,
+                borderWidth: focused ? 2 : 0,
+                borderColor: focused ? '#FFD700' : 'transparent',
+                overflow: 'hidden',
+            }}>
+                <Image
+                    source={{ uri: user.profileImage }}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: size / 2,
+                    }}
+                />
+            </View>
+        );
+    }
+
+    return (
+        <Image
+            source={require('./assets/images/settings-tab-icon.png')}
+            style={[
+                styles.tabIcon,
+                { tintColor: focused ? '#FFD700' : '#A0A0A0' }
+            ]}
+        />
+    );
+}
 
 // Bottom Tab Navigator Component
 function MainTabNavigator() {
     return (
         <Tab.Navigator
             screenOptions={({ route }) => ({
-                headerShown: false, // We'll handle headers within each screen
-                tabBarActiveTintColor: '#FFD700', // Gold color for active tab
-                tabBarInactiveTintColor: '#A0A0A0', // Light grey for inactive tab
-                tabBarStyle: styles.tabBar, // Apply custom style to tab bar
+                headerShown: false,
+                tabBarActiveTintColor: '#FFD700',
+                tabBarInactiveTintColor: '#A0A0A0',
+                tabBarStyle: styles.tabBar,
                 tabBarLabelStyle: styles.tabBarLabel,
                 tabBarIcon: ({ focused, color, size }) => {
                     let iconSource;
-                    const iconSize = 25; // Consistent icon size
 
                     if (route.name === 'HomeTab') {
                         iconSource = require('./assets/images/home-tab-icon.png');
+                        return (
+                            <Image
+                                source={iconSource}
+                                style={[
+                                    styles.tabIcon,
+                                    { tintColor: focused ? '#FFD700' : '#A0A0A0' }
+                                ]}
+                            />
+                        );
                     } else if (route.name === 'TagsTab') {
                         iconSource = require('./assets/images/tags-tab-icon.png');
+                        return (
+                            <Image
+                                source={iconSource}
+                                style={[
+                                    styles.tabIcon,
+                                    { tintColor: focused ? '#FFD700' : '#A0A0A0' }
+                                ]}
+                            />
+                        );
                     } else if (route.name === 'RewardsTab') {
                         iconSource = require('./assets/images/rewards-tab-icon.png');
+                        return (
+                            <Image
+                                source={iconSource}
+                                style={[
+                                    styles.tabIcon,
+                                    { tintColor: focused ? '#FFD700' : '#A0A0A0' }
+                                ]}
+                            />
+                        );
                     } else if (route.name === 'SettingsTab') {
-                        iconSource = require('./assets/images/settings-tab-icon.png');
+                        return <SettingsTabIcon focused={focused} size={size} />;
                     }
-
-                    return (
-                        <Image
-                            source={iconSource}
-                            style={[
-                                styles.tabIcon,
-                                { tintColor: focused ? '#FFD700' : '#A0A0A0' } // Apply tint based on focus
-                            ]}
-                        />
-                    );
                 },
             })}
         >
@@ -78,11 +143,11 @@ function MainTabNavigator() {
     );
 }
 
-export default function App() {
+// Main App Component wrapped with UserProvider
+function AppContent() {
     const [initializing, setInitializing] = useState(true);
-    const [user, setUser] = useState(null); // Firebase user state
+    const [user, setUser] = useState(null);
 
-    // Handle user state changes
     function onAuthStateChanged(user) {
         setUser(user);
         if (initializing) setInitializing(false);
@@ -90,7 +155,7 @@ export default function App() {
 
     useEffect(() => {
         const subscriber = AuthService.onAuthStateChanged(onAuthStateChanged);
-        return subscriber; // unsubscribe on unmount
+        return subscriber;
     }, []);
 
     if (initializing) {
@@ -98,28 +163,49 @@ export default function App() {
             <View style={appStyles.loadingContainer}>
                 <Text style={appStyles.loadingText}>Loading App...</Text>
             </View>
-        ); // Or a splash screen component
+        );
     }
 
     return (
         <NavigationContainer>
             <Stack.Navigator initialRouteName={user ? "MainTabs" : "Login"}>
+                {/* Main Screens */}
                 <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-                <Stack.Screen name="QR Generator" component={QrGeneratorScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="MainTabs" component={MainTabNavigator} options={{ headerShown: false }} />
+
+                {/* Other screens that can be navigated to from anywhere */}
+                <Stack.Screen name="QR Generator" component={QrGeneratorScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="TagDetails" component={TagDetailsScreen} options={{ headerShown: false }} />
                 <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{ headerShown: false }} />
+
+                {/* SETTING DETAIL SCREENS */}
+                <Stack.Screen name="AccountScreen" component={AccountScreen} />
+                <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+                <Stack.Screen name="PrivacyScreen" component={PrivacyScreen} />
+                <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} />
+                <Stack.Screen name="VaultScreen" component={VaultScreen} />
+                <Stack.Screen name="LoyaltyScreen" component={LoyaltyScreen} />
+                <Stack.Screen name="HelpScreen" component={HelpScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );
 }
 
+export default function App() {
+    return (
+        <UserProvider>
+            <AppContent />
+        </UserProvider>
+    );
+}
+
 const styles = StyleSheet.create({
     tabBar: {
-        backgroundColor: '#2E3D49', // Dark background for tab bar
-        borderTopWidth: 0, // Remove top border
-        height: 80, // Adjust height as needed
-        paddingBottom: 20, // Padding for text
-        paddingTop: 10, // Padding for icons
+        backgroundColor: '#2E3D49',
+        borderTopWidth: 0,
+        height: 80,
+        paddingBottom: 20,
+        paddingTop: 10,
     },
     tabBarLabel: {
         fontSize: 12,
@@ -132,7 +218,7 @@ const styles = StyleSheet.create({
     },
 });
 
-const appStyles = StyleSheet.create({ // Styles for the initial loading screen
+const appStyles = StyleSheet.create({
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',

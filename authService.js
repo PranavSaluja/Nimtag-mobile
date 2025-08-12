@@ -1,11 +1,12 @@
-import { auth } from './firebase';
+import { auth } from './firebase'; // Assuming 'firebase.js' is in the same directory as AuthService.js
 import {
     GoogleAuthProvider,
     signInWithCredential,
     signOut,
     onAuthStateChanged,
     PhoneAuthProvider,
-    signInWithCredential as signInWithPhoneCredential,
+    signInWithPhoneNumber,
+    RecaptchaVerifier,
 } from 'firebase/auth';
 import { Platform } from 'react-native';
 
@@ -14,6 +15,7 @@ class AuthService {
         this.auth = auth;
         this.currentUser = null;
         this.verificationId = null;
+        this.recaptchaVerifier = null; // Initialize recaptchaVerifier
     }
 
     // Google Sign-In with credential
@@ -35,22 +37,44 @@ class AuthService {
     // Phone Sign In - Send OTP (React Native approach)
     async sendOTP(phoneNumber) {
         try {
-            // For React Native, we need to use a different approach
-            // This requires setting up Firebase App Check or using a custom backend
-            
-            // Method 1: Using PhoneAuthProvider (requires Firebase App Check)
-            if (Platform.OS !== 'web') {
-                // For native platforms, you'll need to implement server-side verification
-                // or use Firebase App Check. Here's a simplified approach:
-                
-                // This is a placeholder - you'll need to implement server-side OTP
-                // or use Firebase App Check for production
-                console.warn('Native phone auth requires additional setup. See comments in code.');
+            if (Platform.OS === 'web') {
+                // For web, we MUST use reCAPTCHA
+                if (!this.recaptchaVerifier) {
+                    this.recaptchaVerifier = new RecaptchaVerifier(
+                        'recaptcha-container', // Element ID in your web/index.html
+                        {
+                            size: 'invisible',
+                            callback: (response) => {
+                                console.log('reCAPTCHA solved:', response);
+                            },
+                            'expired-callback': () => {
+                                console.log('reCAPTCHA expired');
+                            },
+                        },
+                        this.auth
+                    );
+                }
+
+                console.log('Attempting to send OTP via web (with reCAPTCHA)...');
+                const confirmationResult = await signInWithPhoneNumber(
+                    this.auth,
+                    phoneNumber,
+                    this.recaptchaVerifier
+                );
+                this.recaptchaVerifier.clear();
+                this.recaptchaVerifier = null;
+
+                return {
+                    success: true,
+                    confirmationResult,
+                    message: 'OTP sent successfully (Web)',
+                };
+
+            } else {
+                // --- TEST MODE FOR NATIVE PLATFORMS (Android/iOS) ---
+                console.warn('Native phone auth is in TEST MODE. Real OTP requires Firebase App Check setup.');
                 console.log('📱 TESTING MODE: Use OTP "123456" for phone:', phoneNumber);
-                
-                // Store the phone number for verification
-                this.testPhoneNumber = phoneNumber;
-                
+
                 // For now, return a mock confirmation result for testing
                 return {
                     success: true,
@@ -77,44 +101,21 @@ class AuthService {
                 };
             }
 
-            // Web platform implementation would go here
-            // This requires reCAPTCHA setup in your web app
-            const { RecaptchaVerifier, signInWithPhoneNumber } = require('firebase/auth');
-            
-            if (!this.recaptchaVerifier) {
-                this.recaptchaVerifier = new RecaptchaVerifier(
-                    'recaptcha-container',
-                    {
-                        size: 'invisible',
-                        callback: (response) => {
-                            console.log('reCAPTCHA solved');
-                        },
-                    },
-                    this.auth
-                );
-            }
-
-            const confirmationResult = await signInWithPhoneNumber(
-                this.auth,
-                phoneNumber,
-                this.recaptchaVerifier
-            );
-
-            return {
-                success: true,
-                confirmationResult,
-                message: 'OTP sent successfully',
-            };
-
         } catch (error) {
             console.error('Send OTP error:', error);
-            
             if (Platform.OS === 'web' && this.recaptchaVerifier) {
                 this.recaptchaVerifier.clear();
                 this.recaptchaVerifier = null;
             }
-
-            return { success: false, error: error.message };
+            let errorMessage = error.message;
+            if (error.code === 'auth/too-many-requests') {
+                errorMessage = 'Too many requests. Please try again later.';
+            } else if (error.code === 'auth/invalid-phone-number') {
+                errorMessage = 'Invalid phone number format.';
+            } else if (error.code === 'auth/app-not-authorized') {
+                errorMessage = 'App not authorized. Ensure SHA-1/APNs are correct and App Check is configured (if using real OTP on native).';
+            }
+            return { success: false, error: errorMessage };
         }
     }
 
@@ -122,91 +123,35 @@ class AuthService {
     async verifyOTP(confirmationResult, otp) {
         try {
             const result = await confirmationResult.confirm(otp);
-
-            if (Platform.OS === 'web' && this.recaptchaVerifier) {
-                this.recaptchaVerifier.clear();
-                this.recaptchaVerifier = null;
-            }
-
             return {
                 success: true,
                 user: result.user,
             };
         } catch (error) {
             console.error('Verify OTP error:', error);
-            return { success: false, error: error.message };
+            let errorMessage = error.message;
+            if (error.code === 'auth/invalid-verification-code') {
+                errorMessage = 'Invalid OTP. Please try again.';
+            } else if (error.code === 'auth/code-expired') {
+                errorMessage = 'OTP has expired. Please request a new one.';
+            }
+            return { success: false, error: errorMessage };
         }
     }
 
-    // Alternative: Server-side phone authentication
+    // Server-side phone authentication (Keeping as placeholder)
     async sendOTPViaServer(phoneNumber) {
-        try {
-            // This would call your backend API that handles Firebase Admin SDK
-            const response = await fetch('YOUR_BACKEND_URL/send-otp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ phoneNumber }),
-            });
-
-            const data = await response.json();
-            
-            if (data.success) {
-                return {
-                    success: true,
-                    sessionId: data.sessionId, // Your server's session identifier
-                    message: 'OTP sent successfully',
-                };
-            } else {
-                return { success: false, error: data.error };
-            }
-        } catch (error) {
-            console.error('Server OTP error:', error);
-            return { success: false, error: error.message };
-        }
+        return { success: false, error: "Server-side OTP not implemented for this flow." };
     }
 
     async verifyOTPViaServer(sessionId, otp) {
-        try {
-            const response = await fetch('YOUR_BACKEND_URL/verify-otp', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ sessionId, otp }),
-            });
-
-            const data = await response.json();
-            
-            if (data.success) {
-                // Sign in with custom token received from server
-                const { signInWithCustomToken } = require('firebase/auth');
-                const userCredential = await signInWithCustomToken(this.auth, data.customToken);
-                
-                return {
-                    success: true,
-                    user: userCredential.user,
-                };
-            } else {
-                return { success: false, error: data.error };
-            }
-        } catch (error) {
-            console.error('Server verify OTP error:', error);
-            return { success: false, error: error.message };
-        }
+        return { success: false, error: "Server-side OTP verification not implemented for this flow." };
     }
 
     // Sign Out
     async signOut() {
         try {
             await signOut(this.auth);
-
-            if (Platform.OS === 'web' && this.recaptchaVerifier) {
-                this.recaptchaVerifier.clear();
-                this.recaptchaVerifier = null;
-            }
-
             return { success: true };
         } catch (error) {
             console.error('Sign out error:', error);
@@ -224,12 +169,9 @@ class AuthService {
         return this.auth.currentUser;
     }
 
-    // Cleanup
+    // Cleanup (simplified as recaptcha is cleared in sendOTP)
     cleanup() {
-        if (Platform.OS === 'web' && this.recaptchaVerifier) {
-            this.recaptchaVerifier.clear();
-            this.recaptchaVerifier = null;
-        }
+        console.log("AuthService cleanup complete.");
     }
 }
 

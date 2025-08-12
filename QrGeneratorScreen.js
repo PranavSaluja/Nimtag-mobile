@@ -1,29 +1,32 @@
-import React, { useState, useLayoutEffect } from 'react'; // Import useLayoutEffect
+import React, { useState, useLayoutEffect } from 'react';
 import {
     View,
     Text,
     TextInput,
-    TouchableOpacity, // Use TouchableOpacity for custom button styles
+    TouchableOpacity,
     StyleSheet,
     Alert,
     ScrollView,
     KeyboardAvoidingView,
     Platform,
-    Image, // Import Image for the illustration
+    Image,
 } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function QrGeneratorScreen({ navigation }) { // Receive navigation prop
+export default function QrGeneratorScreen({ navigation }) {
+    const [tagName, setTagName] = useState('');           // NEW STATE for tag name
     const [vehicleNumber, setVehicleNumber] = useState('');
     const [ownerName, setOwnerName] = useState('');
     const [contactNumber, setContactNumber] = useState('');
+    const [carName, setCarName] = useState('');
+    const [carColor, setCarColor] = useState('');
     const [qrDataString, setQrDataString] = useState('');
+    const [currentTagData, setCurrentTagData] = useState(null); // Store current tag data for saving
 
     // Your Vercel base URL for the hosted web page
-    // MAKE SURE TO REPLACE THIS with your actual Vercel deployment URL!
-    const vercelBaseUrl = 'https://nimtag-web-git-main-pranav-salujas-projects-a4bcb805.vercel.app/qr-scan-landing.html';
+    const vercelBaseUrl = 'https://nimtag-landing.vercel.app/qr-scan-landing.html';
 
-    // useLayoutEffect to ensure no header is shown for this screen
     useLayoutEffect(() => {
         navigation.setOptions({
             headerShown: false,
@@ -31,31 +34,101 @@ export default function QrGeneratorScreen({ navigation }) { // Receive navigatio
     }, [navigation]);
 
     const handleGenerateQR = () => {
-        // Basic validation
-        if (!vehicleNumber || !ownerName || !contactNumber) {
+        // Basic validation - updated to include tag name
+        if (!tagName || !vehicleNumber || !ownerName || !contactNumber || !carName || !carColor) {
             Alert.alert(
                 'Missing Information',
-                'Please fill in all vehicle details to generate the QR code.'
+                'Please fill in all fields including Tag Name to generate the QR code.'
             );
             return;
         }
 
-        // URL-encode all parameters to ensure they are correctly passed in the URL
+        // URL-encode all parameters
         const encodedVNum = encodeURIComponent(vehicleNumber);
         const encodedOName = encodeURIComponent(ownerName);
         const encodedContact = encodeURIComponent(contactNumber);
+        const encodedCarName = encodeURIComponent(carName);
+        const encodedCarColor = encodeURIComponent(carColor);
 
         // Construct the full URL with all data as query parameters
-        const fullUrlForQR = `${vercelBaseUrl}?vNum=${encodedVNum}&oName=${encodedOName}&contact=${encodedContact}`;
+        const fullUrlForQR = `${vercelBaseUrl}?vNum=${encodedVNum}&oName=${encodedOName}&contact=${encodedContact}&carName=${encodedCarName}&carColor=${encodedCarColor}`;
 
-        // Update state to display the QR code
         setQrDataString(fullUrlForQR);
 
-        // Provide user feedback
+        // Store current tag data for potential saving
+        setCurrentTagData({
+            id: Date.now().toString(), // Simple ID generation
+            tagName,
+            vehicleNumber,
+            ownerName,
+            contactNumber,
+            carName,
+            carColor,
+            qrDataString: fullUrlForQR,
+            createdAt: new Date().toISOString(),
+            scansThisWeek: 0,
+            lastCall: 'Never'
+        });
+
         Alert.alert(
             'QR Code Generated!',
-            'Your QR code is ready. Anyone can scan this code to view the details on a web page.'
+            'Your QR code is ready. You can now save this tag or scan the code.'
         );
+    };
+
+    const handleSaveTag = async () => {
+        if (!currentTagData) {
+            Alert.alert('Error', 'No QR code generated to save.');
+            return;
+        }
+
+        try {
+            // Get existing saved tags
+            const existingTags = await AsyncStorage.getItem('savedTags');
+            let savedTags = existingTags ? JSON.parse(existingTags) : [];
+
+            // Check if tag name already exists
+            const tagExists = savedTags.some(tag => tag.tagName.toLowerCase() === currentTagData.tagName.toLowerCase());
+
+            if (tagExists) {
+                Alert.alert('Error', 'A tag with this name already exists. Please choose a different name.');
+                return;
+            }
+
+            // Add new tag
+            savedTags.push(currentTagData);
+
+            // Save updated tags array
+            await AsyncStorage.setItem('savedTags', JSON.stringify(savedTags));
+
+            Alert.alert(
+                'Tag Saved!',
+                `"${currentTagData.tagName}" has been saved to your tags.`,
+                [
+                    {
+                        text: 'View Tags',
+                        onPress: () => navigation.navigate('TagsTab')
+                    },
+                    {
+                        text: 'Create Another',
+                        onPress: () => {
+                            // Reset form
+                            setTagName('');
+                            setVehicleNumber('');
+                            setOwnerName('');
+                            setContactNumber('');
+                            setCarName('');
+                            setCarColor('');
+                            setQrDataString('');
+                            setCurrentTagData(null);
+                        }
+                    }
+                ]
+            );
+        } catch (error) {
+            console.error('Error saving tag:', error);
+            Alert.alert('Error', 'Failed to save tag. Please try again.');
+        }
     };
 
     return (
@@ -65,24 +138,31 @@ export default function QrGeneratorScreen({ navigation }) { // Receive navigatio
             keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
         >
             <ScrollView contentContainerStyle={styles.scrollContent}>
-                {/* New Header Section */}
                 <View style={styles.newHeaderContainer}>
                     <Text style={styles.newTitle}>Activate Your Tag</Text>
                     <Text style={styles.newDescription}>
-                        Scan your NimTag or enter your tag code below to link it with your account.
+                        Fill in your details below to generate and save your QR tag.
                     </Text>
                 </View>
 
-                {/* Illustration Image */}
                 <View style={styles.illustrationContainer}>
                     <Image
-                        source={require('./assets/images/generated-image.png')} // Adjust path as needed
+                        source={require('./assets/images/generated-image.png')}
                         style={styles.illustrationImage}
                         resizeMode="contain"
                     />
                 </View>
 
-                {/* Original Input Fields (kept as is) */}
+                {/* NEW INPUT for Tag Name */}
+                <TextInput
+                    style={styles.input}
+                    placeholder="Tag Name (e.g., My Car Tag, Office Tag)"
+                    placeholderTextColor="#888"
+                    value={tagName}
+                    onChangeText={setTagName}
+                />
+
+                {/* Original Input Fields */}
                 <TextInput
                     style={styles.input}
                     placeholder="Vehicle Number (e.g., MH12AB1234)"
@@ -100,22 +180,34 @@ export default function QrGeneratorScreen({ navigation }) { // Receive navigatio
                 />
                 <TextInput
                     style={styles.input}
-                    placeholder="Contact Number"
+                    placeholder="Contact Number (e.g., +919876543210)"
                     placeholderTextColor="#888"
                     value={contactNumber}
                     onChangeText={setContactNumber}
                     keyboardType="phone-pad"
                 />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Car Name (e.g., Maruti Ignis Delta)"
+                    placeholderTextColor="#888"
+                    value={carName}
+                    onChangeText={setCarName}
+                />
+                <TextInput
+                    style={styles.input}
+                    placeholder="Car Color (e.g., Arctic White)"
+                    placeholderTextColor="#888"
+                    value={carColor}
+                    onChangeText={setCarColor}
+                />
 
-                {/* Custom Button to match the theme */}
                 <TouchableOpacity
-                    style={styles.activateButton} // New style for the button
+                    style={styles.activateButton}
                     onPress={handleGenerateQR}
                 >
-                    <Text style={styles.activateButtonText}>Activate Tag</Text>
+                    <Text style={styles.activateButtonText}>Generate QR Code</Text>
                 </TouchableOpacity>
 
-                {/* Conditional rendering: show QR code only if qrDataString is set */}
                 {qrDataString ? (
                     <View style={styles.qrContainer}>
                         <Text style={styles.qrLabel}>Scan this code:</Text>
@@ -125,13 +217,22 @@ export default function QrGeneratorScreen({ navigation }) { // Receive navigatio
                             color="black"
                             backgroundColor="white"
                         />
+                        <Text style={styles.tagNameDisplay}>Tag: {tagName}</Text>
+
+                        {/* Save Tag Button */}
+                        <TouchableOpacity
+                            style={styles.saveButton}
+                            onPress={handleSaveTag}
+                        >
+                            <Text style={styles.saveButtonText}>Save Tag</Text>
+                        </TouchableOpacity>
+
                         <Text style={styles.qrUrlText}>
                             This QR contains the URL:
                             <Text style={{ fontWeight: 'bold' }}> {qrDataString}</Text>
                         </Text>
                     </View>
                 ) : null}
-
             </ScrollView>
         </KeyboardAvoidingView>
     );
@@ -140,72 +241,72 @@ export default function QrGeneratorScreen({ navigation }) { // Receive navigatio
 const styles = StyleSheet.create({
     keyboardAvoidingContainer: {
         flex: 1,
-        backgroundColor: '#FFFFFF', // Changed to white background as in mockup
+        backgroundColor: '#FFFFFF',
     },
     scrollContent: {
         flexGrow: 1,
-        justifyContent: 'flex-start', // Align content to top
+        justifyContent: 'flex-start',
         alignItems: 'center',
-        padding: 25, // Adjusted padding
-        paddingTop: 50, // Added more top padding for the header
+        padding: 25,
+        paddingTop: 50,
     },
     newHeaderContainer: {
         width: '100%',
         alignItems: 'center',
-        marginBottom: 20, // Space below header
+        marginBottom: 20,
     },
     newTitle: {
-        fontSize: 26, // Larger and bolder title
+        fontSize: 26,
         fontWeight: 'bold',
-        color: '#2E3D49', // Dark blue text color
+        color: '#2E3D49',
         marginBottom: 10,
         textAlign: 'center',
     },
     newDescription: {
         fontSize: 16,
-        color: '#6A7E8F', // Lighter grey for description
+        color: '#6A7E8F',
         textAlign: 'center',
         lineHeight: 22,
-        marginBottom: 30, // Space below description before image
+        marginBottom: 30,
     },
     illustrationContainer: {
         width: '100%',
         alignItems: 'center',
-        marginBottom: 30, // Space below image before inputs
-        backgroundColor: '#E6F0F6', // Light blue background from mockup
-        borderRadius: 15, // Rounded corners for the container
-        paddingVertical: 20, // Vertical padding inside the container
+        marginBottom: 30,
+        backgroundColor: '#E6F0F6',
+        borderRadius: 15,
+        paddingVertical: 20,
     },
     illustrationImage: {
-        width: '80%', // Adjust width relative to container
-        height: 200, // Fixed height for the image
-        maxWidth: 300, // Max width to prevent it from getting too large on big screens
+        width: '80%',
+        height: 200,
+        maxWidth: 300,
     },
     input: {
         width: '100%',
         maxWidth: 400,
-        padding: 15, // Adjusted padding
+        padding: 15,
         borderWidth: 1,
-        borderColor: '#E0E0E0', // Lighter border color
-        borderRadius: 10, // More rounded corners
+        borderColor: '#E0E0E0',
+        borderRadius: 10,
         marginBottom: 15,
-        backgroundColor: '#F7F7F7', // Slightly off-white background
-        fontSize: 16, // Consistent font size
+        backgroundColor: '#F7F7F7',
+        fontSize: 16,
         color: '#333',
-        shadowColor: '#000', // Subtle shadow for a lifted effect
+        shadowColor: '#000',
         shadowOffset: { width: 0, height: 1 },
         shadowOpacity: 0.1,
         shadowRadius: 2,
-        elevation: 2, // Android shadow
+        elevation: 2,
     },
-    activateButton: { // New style for the "Generate QR Code" button
-        backgroundColor: '#2E3D49', // Dark blue background from mockup
+    activateButton: {
+        backgroundColor: '#2E3D49',
         paddingVertical: 18,
         borderRadius: 10,
         width: '100%',
         maxWidth: 400,
-        marginTop: 10, // Space above the button
-        marginBottom: 20, // Space below the button
+        marginTop: 10,
+        marginBottom: 20,
     },
     activateButtonText: {
         color: 'white',
@@ -224,6 +325,8 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.1,
         shadowRadius: 8,
         elevation: 5,
+        width: '100%',
+        maxWidth: 400,
     },
     qrLabel: {
         fontSize: 20,
@@ -231,8 +334,28 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         color: '#555',
     },
+    tagNameDisplay: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#2E3D49',
+        marginTop: 15,
+        marginBottom: 20,
+    },
+    saveButton: {
+        backgroundColor: '#4CAF50',
+        paddingVertical: 12,
+        paddingHorizontal: 30,
+        borderRadius: 8,
+        marginBottom: 20,
+    },
+    saveButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
+        textAlign: 'center',
+    },
     qrUrlText: {
-        marginTop: 20,
+        marginTop: 10,
         fontSize: 12,
         color: '#777',
         textAlign: 'center',

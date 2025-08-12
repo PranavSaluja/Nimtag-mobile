@@ -1,15 +1,15 @@
 export default {
   expo: {
-    name: "NimtagApp",
-    slug: "nimtagapp",
+    name: "Scantocall",
+    slug: "scantocall",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/icon.png",
+    icon: "./assets/icon.jpg",
     userInterfaceStyle: "light",
 
     extra: {
       eas: {
-        projectId: "0d8ea0bc-8c2f-493c-bbc8-56efbc3b6ea2"
+        projectId: "93cfa12f-ef54-425d-8785-a4110159687b"
       }
     },
 
@@ -23,14 +23,16 @@ export default {
 
     ios: {
       supportsTablet: true,
-      bundleIdentifier: "com.pranav01.NimtagApp",
+      bundleIdentifier: "com.pranav01.scantocall",
       infoPlist: {
-        ITSAppUsesNonExemptEncryption: false
+        ITSAppUsesNonExemptEncryption: false,
+        NSCameraUsageDescription: "This app needs access to camera to take profile photos.",
+        NSPhotoLibraryUsageDescription: "This app needs access to photo library to select profile images."
       }
     },
 
     android: {
-      package: "com.pranav01.NimtagApp",
+      package: "com.pranav01.scantocall",
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
         backgroundColor: "#FFFFFF"
@@ -39,7 +41,8 @@ export default {
         "INTERNET",
         "CAMERA",
         "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
+        "WRITE_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES"
       ]
     },
 
@@ -47,7 +50,7 @@ export default {
       favicon: "./assets/favicon.png"
     },
 
-    scheme: "nimtagapp",
+    scheme: "scantocall",
 
     plugins: [
       [
@@ -56,6 +59,13 @@ export default {
           android: {
             enableProguardInReleaseBuilds: true
           }
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          photosPermission: "The app accesses your photos to let you share them.",
+          cameraPermission: "The app accesses your camera to let you take photos."
         }
       ]
     ]

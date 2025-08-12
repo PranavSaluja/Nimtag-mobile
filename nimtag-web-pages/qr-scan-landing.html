@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Vehicle Owner - NimTag</title>
+    <title>Contact NimTag User</title>
     <!-- Optional: Feather Icons for sleek icons -->
     <script src="https://unpkg.com/feather-icons"></script>
     <style>
@@ -12,10 +11,8 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
             margin: 0;
-            background-color: #1E2C3A;
-            /* Dark blue background from NimTag Home Screen */
-            color: #E0E0E0;
-            /* Light text color */
+            background-color: #1E2C3A; /* Dark blue background from NimTag Home Screen */
+            color: #E0E0E0; /* Light text color */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -23,244 +20,214 @@
             padding: 20px;
             box-sizing: border-box;
             line-height: 1.5;
-            overflow-x: hidden;
-            /* Prevent horizontal scroll */
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
 
         .container {
-            background-color: #2E3D49;
-            /* Slightly lighter dark blue for cards */
+            background-color: #2E3D49; /* Slightly lighter dark blue for cards */
             padding: 30px;
-            border-radius: 20px;
-            /* More rounded corners */
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-            /* Deeper shadow */
-            max-width: 450px;
-            /* Adjusted max width */
+            border-radius: 20px; /* More rounded corners */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Deeper shadow */
+            max-width: 450px; /* Adjusted max width */
             width: 100%;
-            text-align: left;
-            /* Align text to left inside container */
+            text-align: center; /* Align text to center inside container for main content */
             box-sizing: border-box;
             animation: fadeIn 0.8s ease-out;
             color: #E0E0E0;
-            margin-bottom: 20px;
-            /* Space before buttons */
         }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Top Header */
-        .top-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        /* Top Header (back arrow, main title, description) */
+        .header {
+            text-align: left; /* Align text to left */
             margin-bottom: 25px;
+            position: relative;
         }
-
-        .vehicle-id {
-            font-size: 2.2em;
-            /* Larger vehicle ID */
+        .back-arrow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+            width: 28px; /* Size of the back arrow */
+            height: 28px;
+            stroke: #E0E0E0; /* White arrow */
+            stroke-width: 2;
+        }
+        .title {
+            font-size: 1.8em;
             font-weight: bold;
             color: #E0E0E0;
-            /* White text */
+            margin-bottom: 10px;
+            margin-top: 35px; /* Space for the back arrow */
+            text-align: center; /* Center align title */
+        }
+        .description {
+            font-size: 1em;
+            color: #A0A0A0; /* Light grey */
+            line-height: 1.4;
+            text-align: center; /* Center align description */
         }
 
-        .live-support {
-            background-color: #FFD700;
-            /* Gold color */
-            color: #1E2C3A;
-            /* Dark text on gold */
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            font-size: 0.9em;
-            text-decoration: none;
-        }
-
-        /* Vehicle Details Section */
-        .details-section {
+        /* Profile Card */
+        .profile-card {
+            background-color: #3A4B5C; /* Even lighter dark blue */
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
             margin-bottom: 30px;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
         }
-
-        .details-title {
-            font-size: 1.2em;
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #5C6E80; /* A contrasting background for avatar */
+            margin-bottom: 15px;
+            object-fit: cover; /* Ensure image covers the area */
+        }
+        .profile-name {
+            font-size: 1.6em;
             font-weight: bold;
+            color: white;
+            margin-bottom: 5px;
+        }
+        .profile-location {
+            font-size: 1.1em;
             color: #A0A0A0;
-            /* Light grey title */
             margin-bottom: 10px;
         }
-
-        .vehicle-description {
-            font-size: 1.1em;
+        .profile-car-tag {
+            font-size: 1em;
             color: #E0E0E0;
             line-height: 1.4;
-        }
-
-        .vehicle-license {
-            font-size: 1.4em;
-            font-weight: bold;
-            color: #E0E0E0;
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-        }
-
-        .masked-part {
-            background-color: #FFD700;
-            /* Gold background for masked part */
-            color: #1E2C3A;
-            /* Dark text on gold */
-            padding: 5px 10px;
-            border-radius: 8px;
-            margin-left: 10px;
-            font-size: 0.8em;
-            font-weight: bold;
         }
 
         /* Reason Selection */
         .reason-section {
             margin-bottom: 30px;
+            text-align: left; /* Align reason text to left */
         }
-
         .reason-prompt {
             font-size: 1em;
             color: #A0A0A0;
             margin-bottom: 15px;
         }
-
         .reason-option {
             display: flex;
             align-items: center;
             padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            /* Subtle separator */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Subtle separator */
             cursor: pointer;
             transition: background-color 0.2s ease-in-out;
         }
-
         .reason-option:last-child {
             border-bottom: none;
         }
-
         .reason-option:hover {
-            background-color: rgba(255, 255, 255, 0.05);
-            /* Light hover effect */
+            background-color: rgba(255, 255, 255, 0.05); /* Light hover effect */
         }
 
+        /* Hiding Feather Icon from Reason List */
         .reason-icon {
-            margin-right: 15px;
-            width: 24px;
-            /* Icon size */
-            height: 24px;
-            stroke: #E0E0E0;
-            /* Default icon color */
-            fill: none;
-            /* Make sure icons are outlined, not filled */
-            stroke-width: 2;
-            /* Adjust stroke thickness */
+            display: none; /* Hide the icon here */
         }
 
         .reason-text {
             flex-grow: 1;
             font-size: 1.05em;
             color: #E0E0E0;
+            margin-left: 0; /* Remove default margin from icon */
         }
-
         .reason-radio {
             position: relative;
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            border: 2px solid #A0A0A0;
-            /* Grey border for unchecked */
-            margin-left: 15px;
+            border: 2px solid #A0A0A0; /* Grey border for unchecked */
+            margin-left: 15px; /* Space from right */
+            margin-right: 0; /* No right margin for radio button */
+            flex-shrink: 0; /* Prevent shrinking */
             display: flex;
             align-items: center;
             justify-content: center;
         }
-
         .reason-option input[type="radio"] {
             position: absolute;
             opacity: 0;
             width: 0;
             height: 0;
         }
-
         .reason-radio::after {
             content: '';
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            background-color: #FFD700;
-            /* Gold fill for checked */
+            background-color: #FFD700; /* Gold fill for checked */
             opacity: 0;
             transition: opacity 0.2s ease-in-out;
         }
-
-        .reason-option input[type="radio"]:checked+.reason-radio::after {
+        .reason-option input[type="radio"]:checked + .reason-radio::after {
             opacity: 1;
         }
-
-        .reason-option input[type="radio"]:checked+.reason-radio {
-            border-color: #FFD700;
-            /* Gold border when checked */
+        .reason-option input[type="radio"]:checked + .reason-radio {
+            border-color: #FFD700; /* Gold border when checked */
         }
 
-        /* Action Buttons */
-        .action-buttons {
+        /* Contact Options (replacing action buttons) */
+        .contact-options {
+            margin-top: 30px; /* Space above contact options */
+            margin-bottom: 30px; /* Space below contact options */
+            text-align: left; /* Align contact option text to left */
+        }
+        .contact-option {
             display: flex;
-            justify-content: space-between;
-            gap: 15px;
-            /* Space between buttons */
-            margin-top: 30px;
-            /* Space above buttons */
-        }
-
-        .btn {
-            flex: 1;
-            padding: 15px;
+            align-items: center;
+            background-color: #3A4B5C; /* Darker blue for options */
+            padding: 15px 20px;
             border-radius: 10px;
-            font-size: 1.1em;
-            font-weight: bold;
+            margin-bottom: 15px;
             cursor: pointer;
-            text-align: center;
-            border: none;
             transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
         }
-
-        .btn-message {
-            background-color: #3A4B5C;
-            /* Darker grey */
-            color: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        .contact-option:last-child {
+            margin-bottom: 0;
         }
-
-        .btn-message:hover {
+        .contact-option:hover {
             background-color: #4C5E70;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.25);
+        }
+        .contact-icon {
+            margin-right: 15px;
+            width: 28px;
+            height: 28px;
+            stroke: #FFD700; /* Gold tint for icons */
+            fill: none;
+            stroke-width: 2;
+        }
+        /* Specific tint for WhatsApp */
+        .contact-option.whatsapp-option .contact-icon {
+            stroke: #25D366; /* WhatsApp green tint */
+        }
+        .contact-text {
+            font-size: 1.1em;
+            color: #E0E0E0;
+            font-weight: 500;
         }
 
-        .btn-private-call {
-            background-color: #FFD700;
-            /* Gold */
-            color: #1E2C3A;
-            /* Dark text on gold */
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn-private-call:hover {
-            background-color: #E6C200;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+        /* eGold Message */
+        .egold-message {
+            font-size: 0.95em;
+            color: #FFD700; /* Gold color */
+            margin-top: 30px;
+            font-weight: 600;
+            line-height: 1.4;
         }
 
         /* Responsive Adjustments */
@@ -269,99 +236,91 @@
                 padding: 20px;
                 border-radius: 15px;
             }
-
-            .top-header {
-                flex-direction: column;
-                align-items: flex-start;
-                margin-bottom: 20px;
+            .title {
+                font-size: 1.6em;
+                margin-top: 25px;
             }
-
-            .live-support {
-                margin-top: 10px;
-                align-self: flex-end;
+            .profile-avatar {
+                width: 70px;
+                height: 70px;
             }
-
-            .vehicle-id {
-                font-size: 1.8em;
+            .profile-name {
+                font-size: 1.4em;
             }
-
-            .reason-option {
-                padding: 10px 0;
-            }
-
-            .action-buttons {
-                flex-direction: column;
-                gap: 10px;
-            }
-
-            .btn {
-                padding: 12px;
+            .contact-option {
+                padding: 12px 15px;
             }
         }
     </style>
 </head>
-
 <body>
     <div class="container">
-        <div class="top-header">
-            <span class="vehicle-id" id="topVehicleId">NGF132</span>
-            <a href="#" class="live-support">Live Support</a>
+        <div class="header">
+            <i data-feather="chevron-left" class="back-arrow" onclick="history.back()"></i>
+            <h1 class="title">You're contacting a NimTag user</h1>
+            <p class="description">This tag is protected for privacy. Your contact will be securely delivered.</p>
         </div>
 
-        <div class="details-section">
-            <p class="details-title">Contact Vehicle Owner.</p>
-            <p class="vehicle-description" id="vehicleDescription">ARCTIC WHITE MARUTI IGNIS DELTA PETROL</p>
-            <p class="vehicle-license">
-                <span id="vehicleLicensePrefix">DL8CAQ</span>
-                <span class="masked-part">#####</span>
-            </p>
+        <div class="profile-card">
+            <img src="https://i.imgur.com/K12X76L.png" alt="Arjun Avatar" class="profile-avatar"> <!-- Replace with your actual image path -->
+            <p class="profile-name" id="ownerNameDisplay">Arjun</p>
+            <p class="profile-location">Delhi</p>
+            <p class="profile-car-tag" id="vehicleInfoDisplay">Car Tag - White Swift DL 10 XX 1234</p>
         </div>
 
+        <!-- Reason Selection Section -->
         <div class="reason-section">
             <p class="reason-prompt">Please select a reason why do you want to contact the owner</p>
 
             <label class="reason-option">
+                <span class="reason-text">The lights of this car is on.</span>
                 <input type="radio" name="contactReason" value="lights-on">
                 <span class="reason-radio"></span>
-                <i data-feather="sun" class="reason-icon"></i>
-                <span class="reason-text">The lights of this car is on.</span>
             </label>
             <label class="reason-option">
+                <span class="reason-text">The car is in no parking.</span>
                 <input type="radio" name="contactReason" value="no-parking">
                 <span class="reason-radio"></span>
-                <i data-feather="slash" class="reason-icon"></i>
-                <span class="reason-text">The car is in no parking.</span>
             </label>
             <label class="reason-option">
+                <span class="reason-text">The car is getting towed.</span>
                 <input type="radio" name="contactReason" value="getting-towed">
                 <span class="reason-radio"></span>
-                <i data-feather="truck" class="reason-icon"></i>
-                <span class="reason-text">The car is getting towed.</span>
             </label>
             <label class="reason-option">
+                <span class="reason-text">There is a baby or pet in car.</span>
                 <input type="radio" name="contactReason" value="baby-pet-in-car">
                 <span class="reason-radio"></span>
-                <i data-feather="users" class="reason-icon"></i> <!-- Using users for baby/pet -->
-                <span class="reason-text">There is a baby or pet in car.</span>
             </label>
             <label class="reason-option">
+                <span class="reason-text">The window or car is open.</span>
                 <input type="radio" name="contactReason" value="window-open">
                 <span class="reason-radio"></span>
-                <i data-feather="square" class="reason-icon"></i> <!-- Using square for window -->
-                <span class="reason-text">The window or car is open.</span>
             </label>
             <label class="reason-option">
+                <span class="reason-text">Something wrong with this car.</span>
                 <input type="radio" name="contactReason" value="something-wrong">
                 <span class="reason-radio"></span>
-                <i data-feather="alert-triangle" class="reason-icon"></i>
-                <span class="reason-text">Something wrong with this car.</span>
             </label>
         </div>
 
-        <div class="action-buttons">
-            <button class="btn btn-message" id="messageButton">Message</button>
-            <button class="btn btn-private-call" id="privateCallButton">Private Call</button>
+        <!-- Contact Options -->
+        <div class="contact-options">
+            <div class="contact-option" onclick="handleMaskedCall()">
+                <i data-feather="phone" class="contact-icon"></i>
+                <span class="contact-text">Masked Call</span>
+            </div>
+            <div class="contact-option whatsapp-option" onclick="handleWhatsApp()">
+                <i data-feather="message-circle" class="contact-icon"></i>
+                <span class="contact-text">WhatsApp</span>
+            </div>
+            <div class="contact-option" onclick="handleLeaveMessage()">
+                <i data-feather="mail" class="contact-icon"></i>
+                <span class="contact-text">Leave a Message</span>
+            </div>
         </div>
+
+        <p class="egold-message">This user earns eGold every time their tag is scanned.</p>
     </div>
 
     <script>
@@ -378,55 +337,67 @@
             return params;
         }
 
+        let scannedContactNumber = ''; // Store the contact number from QR
+
         document.addEventListener('DOMContentLoaded', () => {
             const params = getQueryParams();
 
-            // Populate Vehicle Details
-            const fullVehicleNumber = decodeURIComponent(params.vNum || 'N/A');
-            const ownerName = decodeURIComponent(params.oName || 'N/A'); // Not directly used on this page for display, but could be for logic
-            const contactNumber = decodeURIComponent(params.contact || 'N/A');
+            scannedContactNumber = decodeURIComponent(params.contact || 'N/A');
+            const ownerNameFromQR = decodeURIComponent(params.oName || 'Arjun'); // Default to Arjun if not passed
+            const fullVehicleNumberFromQR = decodeURIComponent(params.vNum || 'DL 10 XX 1234'); // Default vehicle no
 
-            // Split vehicle number for display
-            if (fullVehicleNumber !== 'N/A' && fullVehicleNumber.length > 5) { // Assuming format like DL8CAQ1234
-                const prefix = fullVehicleNumber.substring(0, fullVehicleNumber.length - 4);
-                const maskedSuffix = '####'; // Use a fixed mask as per image
-                document.getElementById('topVehicleId').textContent = prefix; // Display prefix on top
-                document.getElementById('vehicleLicensePrefix').textContent = prefix; // Display prefix near masked part
-            } else {
-                document.getElementById('topVehicleId').textContent = 'N/A';
-                document.getElementById('vehicleLicensePrefix').textContent = 'N/A';
-            }
+            // --- Populate Profile Card ---
+            document.getElementById('ownerNameDisplay').textContent = ownerNameFromQR;
 
-            // Example description (you might want to pass this from QR Generator or fetch from DB)
-            // For now, it's static as per your image.
-            // document.getElementById('vehicleDescription').textContent = "ARCTIC WHITE MARUTI IGNIS DELTA PETROL";
+            // Simple logic to show a basic car tag description
+            // In a real app, you'd fetch more detailed info based on vNum or pass it directly
+            document.getElementById('vehicleInfoDisplay').textContent = `Car Tag - ${fullVehicleNumberFromQR}`;
 
-
-            // Handle Button Clicks
-            document.getElementById('messageButton').addEventListener('click', () => {
-                const selectedReason = document.querySelector('input[name="contactReason"]:checked');
-                if (selectedReason) {
-                    const reasonValue = selectedReason.value;
-                    alert(`Message button clicked! Reason: ${reasonValue}. \n(This would trigger a message flow)`);
-                    // In a real app, this would trigger an API call to send a message
-                    // or navigate to a custom message input screen.
-                } else {
-                    alert('Please select a reason to contact the owner.');
-                }
-            });
-
-            document.getElementById('privateCallButton').addEventListener('click', () => {
-                const selectedReason = document.querySelector('input[name="contactReason"]:checked');
-                if (selectedReason) {
-                    const reasonValue = selectedReason.value;
-                    // Pass contactNumber and selectedReason to the next page
-                    window.location.href = `contact-options.html?contact=${encodeURIComponent(contactNumber)}&reason=${encodeURIComponent(reasonValue)}`;
-                } else {
-                    alert('Please select a reason to contact the owner.');
-                }
-            });
+            // --- You can add logic here to fetch real user details based on fullVehicleNumberFromQR ---
+            // For example:
+            // fetch(`/api/getVehicleDetails?vNum=${fullVehicleNumberFromQR}`)
+            //   .then(response => response.json())
+            //   .then(data => {
+            //     document.getElementById('ownerNameDisplay').textContent = data.ownerName;
+            //     document.getElementById('profileLocation').textContent = data.location;
+            //     document.getElementById('vehicleInfoDisplay').textContent = `Car Tag - ${data.vehicleDescription} ${data.fullLicense}`;
+            //   })
+            //   .catch(error => console.error('Error fetching details:', error));
         });
+
+        // Event Handlers for Contact Options
+        function getSelectedReason() {
+            const selectedReasonElement = document.querySelector('input[name="contactReason"]:checked');
+            return selectedReasonElement ? selectedReasonElement.value : 'No reason selected';
+        }
+
+        function handleMaskedCall() {
+            if (scannedContactNumber !== 'N/A') {
+                const reason = getSelectedReason();
+                alert(`Initiating masked call to ${scannedContactNumber} for reason: ${reason}. \n(Requires backend masked call service)`);
+                // In a real app, you'd send an API request to your backend with contactNumber and reason
+                // The backend would then initiate a masked call and potentially log the reason.
+            } else {
+                alert('Contact number not available.');
+            }
+        }
+
+        function handleWhatsApp() {
+            if (scannedContactNumber !== 'N/A') {
+                const reason = getSelectedReason();
+                const message = encodeURIComponent(`Hello, I'm contacting you about your NimTag. Reason: ${reason}.`);
+                window.open(`https://wa.me/${scannedContactNumber}?text=${message}`, '_blank');
+            } else {
+                alert('Contact number not available for WhatsApp.');
+            }
+        }
+
+        function handleLeaveMessage() {
+            const reason = getSelectedReason();
+            alert(`Opening message interface for reason: ${reason}.\n(Requires message form/API)`);
+            // In a real app, this would typically lead to a modal or a new page
+            // with a text input field for the message, then send via API.
+        }
     </script>
 </body>
-
 </html>
