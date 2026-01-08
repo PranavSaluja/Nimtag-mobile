@@ -1,179 +1,232 @@
 // App.js
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  StyleSheet, // For creating styles
-  Alert,
-  ScrollView,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
-import QRCode from 'react-native-qrcode-svg';
+import React, { useState, useEffect } from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Image, StyleSheet, Text, View, Platform } from 'react-native';
 
-export default function App() {
-  const [vehicleNumber, setVehicleNumber] = useState('');
-  const [ownerName, setOwnerName] = useState('');
-  const [contactNumber, setContactNumber] = useState('');
-  const [qrDataString, setQrDataString] = useState('');
+// Import screens
+import LoginScreen from './LoginScreen';
+import QrGeneratorScreen from './QrGeneratorScreen';
+import HomeScreen from './screens/HomeScreen';
+import TagsScreen from './screens/TagsScreen';
+import TagDetailsScreen from './screens/TagDetailsScreen'; // NEW IMPORT
+import RewardsScreen from './screens/RewardsScreen';
+import SettingsScreen from './screens/SettingsScreen';
+import ProfileScreen from './screens/ProfileScreen';
 
-  // Your Vercel base URL for the hosted web page
-  // MAKE SURE TO REPLACE THIS with your actual Vercel deployment URL!
-  const vercelBaseUrl = 'https://nimtag-web-git-main-pranav-salujas-projects-a4bcb805.vercel.app/'; 
+// Import setting detail screens
+import AccountScreen from './screens/AccountScreen';
+import PrivacyScreen from './screens/PrivacyScreen';
+import NotificationsScreen from './screens/NotificationsScreen';
+import VaultScreen from './screens/VaultScreen';
+import LoyaltyScreen from './screens/LoyaltyScreen';
+import HelpScreen from './screens/HelpScreen';
+import EditProfileScreen from './screens/EditProfileScreen';
 
-  const handleGenerateQR = () => {
-    // Basic validation
-    if (!vehicleNumber || !ownerName || !contactNumber) {
-      Alert.alert(
-        'Missing Information',
-        'Please fill in all vehicle details to generate the QR code.'
-      );
-      return;
+import AuthService from './authService';
+import { UserProvider, useUser } from './context/UserContext';
+
+const Stack = createNativeStackNavigator();
+const Tab = createBottomTabNavigator();
+
+// Updated Settings Tab Icon with Profile Image
+function SettingsTabIcon({ focused, size }) {
+    const { user } = useUser();
+
+    if (user?.profileImage) {
+        return (
+            <View style={{
+                width: size,
+                height: size,
+                borderRadius: size / 2,
+                borderWidth: focused ? 2 : 0,
+                borderColor: focused ? '#FFD700' : 'transparent',
+                overflow: 'hidden',
+            }}>
+                <Image
+                    source={{ uri: user.profileImage }}
+                    style={{
+                        width: '100%',
+                        height: '100%',
+                        borderRadius: size / 2,
+                    }}
+                />
+            </View>
+        );
     }
 
-    // URL-encode all parameters to ensure they are correctly passed in the URL
-    const encodedVNum = encodeURIComponent(vehicleNumber);
-    const encodedOName = encodeURIComponent(ownerName);
-    const encodedContact = encodeURIComponent(contactNumber);
-
-    // Construct the full URL with all data as query parameters
-    const fullUrlForQR = `${vercelBaseUrl}?vNum=${encodedVNum}&oName=${encodedOName}&contact=${encodedContact}`;
-
-    // Update state to display the QR code
-    setQrDataString(fullUrlForQR);
-
-    // Provide user feedback
-    Alert.alert(
-      'QR Code Generated!',
-      'Your QR code is ready. Anyone can scan this code to view the details on a web page.'
+    return (
+        <Image
+            source={require('./assets/images/settings-tab-icon.png')}
+            style={[
+                styles.tabIcon,
+                { tintColor: focused ? '#FFD700' : '#A0A0A0' }
+            ]}
+        />
     );
-  };
-
-  return (
-    // KeyboardAvoidingView helps prevent the keyboard from obscuring input fields
-    <KeyboardAvoidingView
-      style={styles.keyboardAvoidingContainer} // Apply styles using StyleSheet
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
-    >
-      {/* ScrollView for content that might exceed screen height */}
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.title}>Nimtag QR Generator</Text>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Vehicle Number (e.g., MH12AB1234)"
-          placeholderTextColor="#888"
-          value={vehicleNumber}
-          onChangeText={setVehicleNumber}
-          autoCapitalize="characters"
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Owner Name"
-          placeholderTextColor="#888"
-          value={ownerName}
-          onChangeText={setOwnerName}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Contact Number (e.g., +919876543210)"
-          placeholderTextColor="#888"
-          value={contactNumber}
-          onChangeText={setContactNumber}
-          keyboardType="phone-pad"
-        />
-
-        <Button
-          title="Generate QR Code"
-          onPress={handleGenerateQR}
-          color="#007bff" // Standard button color prop
-        />
-
-        {/* Conditional rendering: show QR code only if qrDataString is set */}
-        {qrDataString ? (
-          <View style={styles.qrContainer}>
-            <Text style={styles.qrLabel}>Scan this code:</Text>
-            <QRCode
-              value={qrDataString} // The URL string for the QR code
-              size={220} // Dimensions of the QR code
-              color="black" // Foreground color of the QR code
-              backgroundColor="white" // Background color of the QR code
-            />
-            <Text style={styles.qrUrlText}>
-              This QR contains the URL:
-              <Text style={{ fontWeight: 'bold' }}> {qrDataString}</Text>
-            </Text>
-          </View>
-        ) : null}
-      </ScrollView>
-    </KeyboardAvoidingView>
-  );
 }
 
-// Define your styles using StyleSheet.create
+// Bottom Tab Navigator Component
+function MainTabNavigator() {
+    return (
+        <Tab.Navigator
+            screenOptions={({ route }) => ({
+                headerShown: false,
+                tabBarActiveTintColor: '#FFD700',
+                tabBarInactiveTintColor: '#A0A0A0',
+                tabBarStyle: styles.tabBar,
+                tabBarLabelStyle: styles.tabBarLabel,
+                tabBarIcon: ({ focused, color, size }) => {
+                    let iconSource;
+
+                    if (route.name === 'HomeTab') {
+                        iconSource = require('./assets/images/home-tab-icon.png');
+                        return (
+                            <Image
+                                source={iconSource}
+                                style={[
+                                    styles.tabIcon,
+                                    { tintColor: focused ? '#FFD700' : '#A0A0A0' }
+                                ]}
+                            />
+                        );
+                    } else if (route.name === 'TagsTab') {
+                        iconSource = require('./assets/images/tags-tab-icon.png');
+                        return (
+                            <Image
+                                source={iconSource}
+                                style={[
+                                    styles.tabIcon,
+                                    { tintColor: focused ? '#FFD700' : '#A0A0A0' }
+                                ]}
+                            />
+                        );
+                    } else if (route.name === 'RewardsTab') {
+                        iconSource = require('./assets/images/rewards-tab-icon.png');
+                        return (
+                            <Image
+                                source={iconSource}
+                                style={[
+                                    styles.tabIcon,
+                                    { tintColor: focused ? '#FFD700' : '#A0A0A0' }
+                                ]}
+                            />
+                        );
+                    } else if (route.name === 'SettingsTab') {
+                        return <SettingsTabIcon focused={focused} size={size} />;
+                    }
+                },
+            })}
+        >
+            <Tab.Screen
+                name="HomeTab"
+                component={HomeScreen}
+                options={{ tabBarLabel: 'Home' }}
+            />
+            <Tab.Screen
+                name="TagsTab"
+                component={TagsScreen}
+                options={{ tabBarLabel: 'Tags' }}
+            />
+            <Tab.Screen
+                name="RewardsTab"
+                component={RewardsScreen}
+                options={{ tabBarLabel: 'Rewards' }}
+            />
+            <Tab.Screen
+                name="SettingsTab"
+                component={SettingsScreen}
+                options={{ tabBarLabel: 'Settings' }}
+            />
+        </Tab.Navigator>
+    );
+}
+
+// Main App Component wrapped with UserProvider
+function AppContent() {
+    const [initializing, setInitializing] = useState(true);
+    const [user, setUser] = useState(null);
+
+    function onAuthStateChanged(user) {
+        setUser(user);
+        if (initializing) setInitializing(false);
+    }
+
+    useEffect(() => {
+        const subscriber = AuthService.onAuthStateChanged(onAuthStateChanged);
+        return subscriber;
+    }, []);
+
+    if (initializing) {
+        return (
+            <View style={appStyles.loadingContainer}>
+                <Text style={appStyles.loadingText}>Loading App...</Text>
+            </View>
+        );
+    }
+
+    return (
+        <NavigationContainer>
+            <Stack.Navigator initialRouteName={user ? "MainTabs" : "Login"}>
+                {/* Main Screens */}
+                <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="MainTabs" component={MainTabNavigator} options={{ headerShown: false }} />
+
+                {/* Other screens that can be navigated to from anywhere */}
+                <Stack.Screen name="QR Generator" component={QrGeneratorScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="TagDetails" component={TagDetailsScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{ headerShown: false }} />
+
+                {/* SETTING DETAIL SCREENS */}
+                <Stack.Screen name="AccountScreen" component={AccountScreen} />
+                <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+                <Stack.Screen name="PrivacyScreen" component={PrivacyScreen} />
+                <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} />
+                <Stack.Screen name="VaultScreen" component={VaultScreen} />
+                <Stack.Screen name="LoyaltyScreen" component={LoyaltyScreen} />
+                <Stack.Screen name="HelpScreen" component={HelpScreen} />
+            </Stack.Navigator>
+        </NavigationContainer>
+    );
+}
+
+export default function App() {
+    return (
+        <UserProvider>
+            <AppContent />
+        </UserProvider>
+    );
+}
+
 const styles = StyleSheet.create({
-  keyboardAvoidingContainer: {
-    flex: 1,
-    backgroundColor: '#f4f4f4', // Light background color
-  },
-  scrollContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-    paddingTop: Platform.OS === 'android' ? 50 : 20, // Add more top padding for Android status bar
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 30,
-    textAlign: 'center',
-  },
-  input: {
-    width: '100%',
-    maxWidth: 400,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    marginBottom: 15,
-    backgroundColor: '#fff',
-    fontSize: 16,
-    color: '#333',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2, // Android shadow
-  },
-  qrContainer: {
-    marginTop: 40,
-    alignItems: 'center',
-    padding: 25,
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  qrLabel: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    color: '#555',
-  },
-  qrUrlText: {
-    marginTop: 20,
-    fontSize: 12,
-    color: '#777',
-    textAlign: 'center',
-    paddingHorizontal: 10,
-    lineHeight: 18,
-  },
+    tabBar: {
+        backgroundColor: '#2E3D49',
+        borderTopWidth: 0,
+        height: 80,
+        paddingBottom: 20,
+        paddingTop: 10,
+    },
+    tabBarLabel: {
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    tabIcon: {
+        width: 25,
+        height: 25,
+        resizeMode: 'contain',
+    },
+});
+
+const appStyles = StyleSheet.create({
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#1E2C3A',
+    },
+    loadingText: {
+        color: 'white',
+        fontSize: 20,
+    },
 });
